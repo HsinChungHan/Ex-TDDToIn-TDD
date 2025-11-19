@@ -598,3 +598,235 @@ Shared Module 一律遵守 Domain Layer 或 Data & Infra Layer 規範。
 - TODO / 需後端確認項
 
 ---
+
+## 5.13 Ticket 生成與估時 ⚠️ Optional
+
+根據 TDD 文件自動生成開發 Ticket 並進行開發時間估算。
+
+**詳細規範請參考《TDD Ticket 生成與估時規範》（tdd_ticket_generation_and_estimation.md）**
+
+### 5.13.1 Ticket 生成原則
+
+- 按 Clean Architecture 分層順序生成 Ticket
+- 每個 Ticket 對應一個可獨立開發、測試、驗收的模組
+- 標註 Ticket 依賴關係
+
+### 5.13.2 估時規則
+
+- 使用 Story Point（Fibonacci 數列）
+- 根據模組類型和複雜度評估
+- 考慮技術調整因子和業務調整因子
+- 根據工程師等級轉換為實際工時
+
+### 5.13.3 輸出結構
+
+```
+output/
+└── {Feature}/
+    └── 12_Tickets/
+        ├── README.md                    # Ticket 總覽和索引
+        ├── tickets.json                  # Ticket JSON 格式（可選）
+        ├── 01_domain_model/
+        ├── 02_api/
+        ├── 03_client/
+        ├── 04_repository/
+        ├── 05_usecase/
+        ├── 06_feature/
+        └── 07_view/
+```
+
+---
+
+## 5.14 輸出文件存放規則
+
+### 5.14.1 根目錄結構
+
+所有 TDD 文件必須存放在 `output/` 資料夾下，按以下規則組織：
+
+```
+output/
+└── {Feature組合名稱}/              # 根據 @feature 標籤命名
+    ├── 00_Overview/
+    ├── 01_Integrated Service-Level Sequence Diagram/
+    ├── 02_Architecture/
+    ├── 03_Module Responsibility/
+    ├── 04_Domain Model/
+    ├── 05. Module Sequence Diagram（模組序列圖）/
+    ├── 06_Feature State & Action (TCA)/        # Optional
+    ├── 07_UseCase Input & Output Model/        # Optional
+    ├── 08_API Spec & Mapping/                  # Optional
+    ├── 09_Error Handling/                      # Optional
+    ├── 10_Test Scenarios/                      # Optional
+    └── 11_Risks & Questions/                   # Optional
+```
+
+### 5.14.2 Feature 組合命名規則
+
+| 情況 | 命名規則 | 範例 |
+|------|---------|------|
+| **單一 Feature** | 直接使用 Feature 名稱 | `PrematchComment` |
+| **多個 Feature** | 使用 `&` 連接 | `LiveChat&PrematchComment` |
+| **無 @feature 標籤** | 使用預設名稱 | `Feature1`, `Feature2` |
+
+### 5.14.3 章節資料夾命名規則
+
+| 章節 | 資料夾名稱格式 | 範例 |
+|------|--------------|------|
+| **必需章節** | `{兩位數字}_{章節名稱}` | `00_Overview`<br>`01_Integrated Service-Level Sequence Diagram`<br>`02_Architecture` |
+| **可選章節** | `{兩位數字}_{章節名稱}` | `06_Feature State & Action (TCA)`<br>`07_UseCase Input & Output Model` |
+
+**命名規範**：
+- 使用兩位數字編號（00, 01, 02...）
+- 章節名稱使用英文，可包含空格和括號
+- 必需章節：00-05
+- 可選章節：06-11
+
+### 5.14.4 章節資料夾內容結構
+
+每個章節資料夾必須包含：
+
+1. **README.md**（統整文件）
+   - 說明該章節的目的
+   - 列出該章節下的所有文件
+
+2. **具體內容文件**（.md 文件）
+   - 命名格式：`{序號}_{描述}.md`
+   - 序號：01, 02, 03...（兩位數字）
+   - 描述：簡短描述（使用英文或中文）
+
+**範例**：
+```
+04_Domain Model/
+├── README.md
+├── 01_domain_model.md
+└── 02_domain_model_uml_standard.md
+```
+
+### 5.14.5 Module Sequence Diagram 特殊結構
+
+Module Sequence Diagram 章節（05）有特殊的資料夾結構：
+
+```
+05. Module Sequence Diagram（模組序列圖）/
+├── {Feature1}/
+│   └── Module Sequence Diagrams/
+│       ├── README.md
+│       ├── 01_data_initialization_*.md
+│       ├── 02_data_interaction_*.md
+│       └── 03_structural_navigation_*.md
+├── {Feature2}/
+│   └── Module Sequence Diagrams/
+│       ├── README.md
+│       └── ...
+```
+
+**規則**：
+- 若只有單一 Feature，直接在 `05. Module Sequence Diagram（模組序列圖）/` 下建立 `Module Sequence Diagrams/` 資料夾
+- 若有多個 Feature，為每個 Feature 建立獨立資料夾，每個資料夾下再建立 `Module Sequence Diagrams/` 資料夾
+
+**序列圖文件命名規則**：
+- 格式：`{序號}_{類型}_{描述}.md`
+- 序號：01, 02, 03...（兩位數字）
+- 類型：
+  - `data_initialization_refresh` - 資料初始化/刷新
+  - `data_interaction` - 資料互動（會變動資料或打 API）
+  - `structural_navigation` - 結構導航（會觸發其他 Feature）
+- 描述：簡短描述（使用英文）
+
+**範例**：
+- `01_data_initialization_refresh.md`
+- `02_data_interaction_load_replies.md`
+- `03_data_interaction_toggle_like.md`
+- `04_data_interaction_publish_comment.md`
+- `05_structural_navigation_profile.md`
+
+### 5.14.6 完整輸出結構範例
+
+#### 單一 Feature 範例
+
+```
+output/
+└── PrematchComment/
+    ├── 00_Overview/
+    │   ├── README.md
+    │   └── 01_overview.md
+    ├── 01_Integrated Service-Level Sequence Diagram/
+    │   ├── README.md
+    │   └── 01_full_integration_flow.md
+    ├── 02_Architecture/
+    │   ├── README.md
+    │   └── 01_clean_architecture_diagram.md
+    ├── 03_Module Responsibility/
+    │   ├── README.md
+    │   └── 01_module_responsibility.md
+    ├── 04_Domain Model/
+    │   ├── README.md
+    │   ├── 01_domain_model.md
+    │   └── 02_domain_model_uml_standard.md
+    └── 05. Module Sequence Diagram（模組序列圖）/
+        └── Module Sequence Diagrams/
+            ├── README.md
+            ├── 01_data_initialization_refresh.md
+            ├── 02_data_interaction_load_replies.md
+            └── ...
+```
+
+#### 多個 Feature 範例
+
+```
+output/
+└── LiveChat&PrematchComment/
+    ├── 00_Overview/
+    │   ├── README.md
+    │   └── 01_overview.md
+    ├── 01_Integrated Service-Level Sequence Diagram/
+    │   ├── README.md
+    │   └── 01_full_integration_flow.md
+    ├── 02_Architecture/
+    │   ├── README.md
+    │   └── 01_clean_architecture_diagram.md
+    ├── 03_Module Responsibility/
+    │   ├── README.md
+    │   └── 01_module_responsibility.md
+    ├── 04_Domain Model/
+    │   ├── README.md
+    │   ├── 01_domain_model.md
+    │   └── 02_domain_model_uml_standard.md
+    ├── 05. Module Sequence Diagram（模組序列圖）/
+    │   ├── LiveChat/
+    │   │   └── Module Sequence Diagrams/
+    │   │       ├── README.md
+    │   │       ├── 01_data_initialization_initialize_chatroom.md
+    │   │       └── ...
+    │   └── PrematchComment/
+    │       └── Module Sequence Diagrams/
+    │           ├── README.md
+    │           ├── 01_data_initialization_refresh.md
+    │           └── ...
+    ├── 06_Feature State & Action (TCA)/        # Optional
+    │   ├── README.md
+    │   └── 01_feature_state_action.md
+    └── 07_UseCase Input & Output Model/        # Optional
+        ├── README.md
+        └── 01_usecase_input_output.md
+```
+
+### 5.14.7 文件命名規範總結
+
+| 文件類型 | 命名格式 | 範例 |
+|---------|---------|------|
+| **章節資料夾** | `{兩位數字}_{章節名稱}` | `00_Overview`<br>`04_Domain Model` |
+| **README 文件** | `README.md` | `README.md` |
+| **章節內容文件** | `{兩位數字}_{描述}.md` | `01_domain_model.md`<br>`02_domain_model_uml_standard.md` |
+| **序列圖文件** | `{兩位數字}_{類型}_{描述}.md` | `01_data_initialization_refresh.md`<br>`02_data_interaction_load_replies.md` |
+
+### 5.14.8 重要規則
+
+1. **所有文件必須放在 `output/` 資料夾下**
+2. **每個章節資料夾必須包含 README.md**
+3. **章節編號必須使用兩位數字（00-11）**
+4. **文件編號必須使用兩位數字（01, 02, 03...）**
+5. **Module Sequence Diagram 章節必須按 Feature 分組**
+6. **所有 .md 文件必須使用 UTF-8 編碼**
+
+---

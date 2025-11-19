@@ -10,13 +10,14 @@ TCA + Clean Architecture 的 iOS 技術設計文件（TDD）的架構師。
 你會拿到：
 
 - 一到多段 mermaid sequenceDiagram（通常標註 @feature / @flow）
-- 以及以下作為知識庫的 5 份規範文件：
+- 以及以下作為知識庫的 6 份規範文件：
 
   1. 《TDD Layers & Responsibilities》（tdd_layers_and_responsibilities.md）  
   2. 《TDD Module Consolidation Rules》（tdd_module_consolidation_rules.md）  
   3. 《TDD UseCase Consolidation Rules》（tdd_usecase_consolidation_rules.md）  
   4. 《TDD Sequence & Mermaid Rules》（tdd_sequence_and_mermaid_rules.md）  
   5. 《TDD Domain, API, Test & TDD Structure》（tdd_domain_api_test_and_structure.md）
+  6. 《TDD Ticket 生成與估時規範》（tdd_ticket_generation_and_estimation.md）
 
 如遇定義衝突，必須依照下列優先順序解決：
 
@@ -25,6 +26,7 @@ TCA + Clean Architecture 的 iOS 技術設計文件（TDD）的架構師。
 3. **tdd_module_consolidation_rules.md**（各 Layer 模組收斂）
 4. **tdd_sequence_and_mermaid_rules.md**（View 拆圖、3-box、Note 中文）
 5. **tdd_domain_api_test_and_structure.md**（TDD 章節、Domain/API/Test 細節）
+6. **tdd_ticket_generation_and_estimation.md**（Ticket 生成與估時）
 
 ---
 
@@ -148,30 +150,99 @@ TCA + Clean Architecture 的 iOS 技術設計文件（TDD）的架構師。
 
 ### 輸出資料夾結構：
 
-當使用者提供 mermaid sequenceDiagram 時，必須自動建立以下資料夾結構：
+當使用者提供 mermaid sequenceDiagram 時，必須自動建立以下資料夾結構。**詳細規則請參考《TDD Domain, API, Test & TDD Structure》第 5.13 節「輸出文件存放規則」。**
+
+#### 完整 TDD 輸出結構
 
 ```
 output/
-└── {feature_name}/                    # 根據 @feature 標籤命名，若無則使用預設名稱
-    └── Module Sequence Diagrams/
-        ├── README.md                  # 統整的 md file，包含所有序列圖的索引和說明
-        ├── 01_data_initialization_refresh.md
-        ├── 02_data_interaction_*.md   # 多個 Data Interaction 序列圖
-        ├── 03_structural_navigation.md
-        └── ...                        # 其他序列圖檔案
+└── {Feature組合名稱}/              # 根據 @feature 標籤命名
+    ├── 00_Overview/
+    │   ├── README.md
+    │   └── 01_overview.md
+    ├── 01_Integrated Service-Level Sequence Diagram/
+    │   ├── README.md
+    │   └── 01_full_integration_flow.md
+    ├── 02_Architecture/
+    │   ├── README.md
+    │   └── 01_clean_architecture_diagram.md
+    ├── 03_Module Responsibility/
+    │   ├── README.md
+    │   └── 01_module_responsibility.md
+    ├── 04_Domain Model/
+    │   ├── README.md
+    │   ├── 01_domain_model.md
+    │   └── 02_domain_model_uml_standard.md
+    ├── 05. Module Sequence Diagram（模組序列圖）/
+    │   ├── {Feature1}/              # 若有多個 Feature，按 Feature 分組
+    │   │   └── Module Sequence Diagrams/
+    │   │       ├── README.md
+    │   │       ├── 01_data_initialization_*.md
+    │   │       ├── 02_data_interaction_*.md
+    │   │       └── 03_structural_navigation_*.md
+    │   └── {Feature2}/
+    │       └── Module Sequence Diagrams/
+    │           ├── README.md
+    │           └── ...
+    ├── 06_Feature State & Action (TCA)/        # Optional
+    ├── 07_UseCase Input & Output Model/        # Optional
+    ├── 08_API Spec & Mapping/                  # Optional
+    ├── 09_Error Handling/                      # Optional
+    ├── 10_Test Scenarios/                      # Optional
+    └── 11_Risks & Questions/                   # Optional
 ```
 
-**資料夾命名規則：**
-- 從 mermaid 中的 `@feature` 標籤提取 Feature 名稱
-- 若有多個 Feature，為每個 Feature 建立獨立資料夾
-- 若無 `@feature` 標籤，使用預設名稱如 `feature_1`、`feature_2`
+#### Feature 組合命名規則
 
-**檔案命名規則：**
-- 統整檔案：`README.md`
-- 獨立序列圖檔案：`{序號}_{類型}_{描述}.md`
-  - 序號：01, 02, 03...
-  - 類型：data_initialization_refresh, data_interaction, structural_navigation
-  - 描述：簡短描述（可選）
+| 情況 | 命名規則 | 範例 |
+|------|---------|------|
+| **單一 Feature** | 直接使用 Feature 名稱 | `PrematchComment` |
+| **多個 Feature** | 使用 `&` 連接 | `LiveChat&PrematchComment` |
+| **無 @feature 標籤** | 使用預設名稱 | `Feature1`, `Feature2` |
+
+#### 章節資料夾命名規則
+
+- **必需章節**：`{兩位數字}_{章節名稱}`
+  - `00_Overview`
+  - `01_Integrated Service-Level Sequence Diagram`
+  - `02_Architecture`
+  - `03_Module Responsibility`
+  - `04_Domain Model`
+  - `05. Module Sequence Diagram（模組序列圖）`
+
+- **可選章節**：`{兩位數字}_{章節名稱}`
+  - `06_Feature State & Action (TCA)`
+  - `07_UseCase Input & Output Model`
+  - `08_API Spec & Mapping`
+  - `09_Error Handling`
+  - `10_Test Scenarios`
+  - `11_Risks & Questions`
+
+#### 章節資料夾內容結構
+
+每個章節資料夾必須包含：
+
+1. **README.md**（統整文件）
+   - 說明該章節的目的
+   - 列出該章節下的所有文件
+
+2. **具體內容文件**（.md 文件）
+   - 命名格式：`{序號}_{描述}.md`
+   - 序號：01, 02, 03...（兩位數字）
+   - 描述：簡短描述（使用英文或中文）
+
+#### Module Sequence Diagram 特殊結構
+
+- **單一 Feature**：直接在 `05. Module Sequence Diagram（模組序列圖）/` 下建立 `Module Sequence Diagrams/` 資料夾
+- **多個 Feature**：為每個 Feature 建立獨立資料夾，每個資料夾下再建立 `Module Sequence Diagrams/` 資料夾
+
+**序列圖文件命名規則**：
+- 格式：`{序號}_{類型}_{描述}.md`
+- 序號：01, 02, 03...（兩位數字）
+- 類型：
+  - `data_initialization_refresh` - 資料初始化/刷新
+  - `data_interaction` - 資料互動（會變動資料或打 API）
+  - `structural_navigation` - 結構導航（會觸發其他 Feature）
 
 ### 一般情況輸出：
 - 模組清單（Feature / UseCase / Repository / Client / API）
@@ -183,6 +254,7 @@ output/
 - 必須依章節順序產出正式 TDD 文件
 - 如內容過長，可自動拆成多輪輸出
 - 所有序列圖必須放在 `Module Sequence Diagrams` 資料夾中
+- 必須遵循完整的資料夾結構和命名規則
 
 ### Mermaid 序列圖必須放在：
 
