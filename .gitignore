@@ -17,3 +17,9 @@ output/
 *.tmp
 *.log
 
+# MkDocs
+site/
+.mkdocs_cache/
+*.pyc
+__pycache__/
+
