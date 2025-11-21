@@ -445,34 +445,153 @@ wss://api.example.com/chat/websocket/web-chat
 
 ### 階段 2：產生 Input 資料
 
-#### 2.1 產生 Description（自然語言敘述）
+**工作流程**：
+
+```
+Client Side RD 自然語言敘述
+    ↓
+[AI 工具] 生成 Mermaid Sequence Diagram
+    ↓
+[AI 工具] 生成 YAML Flow Spec
+    ↓
+產出：mermaid.md、description.md、flow_spec.yaml
+```
+
+#### 2.1 Client Side RD 提供自然語言敘述
 
 **負責人**：Client Side RD
 
 **工作內容**：
-1. 根據 Mermaid Sequence Diagram、PRD、API Spec、UI/UX Spec 撰寫自然語言敘述
-2. 包含以下章節：
+1. 根據 PRD、API Spec、UI/UX Spec，用自然語言描述業務流程
+2. 敘述應包含：
+   - 流程概述（Feature 名稱、Flow 類型、主要目的）
+   - 參與者說明（User、View、Feature、UseCase、Repository、Client、API、External Package 等）
+   - 流程步驟詳述（使用者操作、系統行為、條件分支）
+   - 技術備註（特殊邏輯、限制條件、待確認事項）
+
+**敘述範例**：
+
+```
+這是一個 PrematchComment Feature 的主流程（Full Flow），
+流程名稱是「User 進入 Upcoming Race Page, Prematch Comment Page 與 Top/Newest 切換」。
+
+參與者包括：
+- User（用戶）
+- PrematchCommentView（UI Layer）
+- PrematchCommentFeature（Domain Layer）
+- LoadCommentsUseCase（Domain Layer）
+- PrematchCommentRepository（Data & Infrastructure Layer）
+- PrematchCommentClient（Data & Infrastructure Layer）
+- ChatAPI（Data & Infrastructure Layer）
+- Server（後端）
+
+流程步驟：
+1. User 進入 Upcoming Race Page
+2. User 點擊進入 Prematch Comment Page
+3. PrematchCommentView 初始化，預設顯示 Top tab
+4. PrematchCommentFeature 觸發 LoadCommentsUseCase
+5. LoadCommentsUseCase 調用 PrematchCommentRepository
+6. PrematchCommentRepository 調用 PrematchCommentClient
+7. PrematchCommentClient 發送 GET /chat/match/comment/popular 請求
+8. Server 回應評論列表
+9. 評論列表顯示在 PrematchCommentView
+10. User 可以切換到 Newest tab，流程類似但使用不同的 API endpoint
+
+技術備註：
+- Top tab 使用 GET /chat/match/comment/popular API
+- Newest tab 使用 GET /chat/match/comment/newest API
+- 兩個 tab 的資料需要分別管理狀態
+```
+
+**產出**：自然語言敘述（可直接提供給 AI 工具）
+
+**估時**：
+- Junior：0.5-1 天（每個 Flow）
+- Mid-level：0.25-0.5 天（每個 Flow）
+- Senior：0.25 天（每個 Flow）
+
+#### 2.2 AI 工具生成 Mermaid Sequence Diagram
+
+**負責人**：Client Side RD（使用 AI 工具）
+
+**工作內容**：
+1. 將自然語言敘述提供給 AI 工具（如 Cursor、Claude、ChatGPT）
+2. 要求 AI 工具根據敘述生成 Mermaid Sequence Diagram
+3. AI 工具應遵循以下規範：
+   - 使用 `@feature: {FeatureName}` 標註 Feature
+   - 使用 `@flow: Full` 或 `@flow: Sub` 標註 Flow 類型
+   - 遵循 Clean Architecture 分層（User → View → Feature → UseCase → Repository → Client → API）
+   - 使用 `box` 語法分組 Package 層級
+   - 使用 `alt`、`opt`、`loop` 語法標註條件分支和迴圈
+   - 使用 `note` 語法添加技術備註（中文）
+
+**AI 提示詞範例**：
+
+```
+請根據以下自然語言敘述，生成 Mermaid Sequence Diagram。
+
+敘述：
+[貼上自然語言敘述]
+
+要求：
+1. 使用 Mermaid sequenceDiagram 語法
+2. 標註 @feature: PrematchComment 和 @flow: Full
+3. 遵循 Clean Architecture 分層
+4. 使用 box 語法分組 Package
+5. 使用 alt/opt/loop 語法標註條件分支
+6. Note 使用中文
+7. 包含所有參與者和互動流程
+```
+
+**產出**：`mermaid.md`（Mermaid Sequence Diagram 代碼）
+
+**估時**：
+- 使用 AI 工具：0.1-0.2 天（每個 Flow，主要是審查和調整）
+- 手動生成：1-2 天（每個 Flow，不推薦）
+
+#### 2.3 AI 工具生成 Description（自然語言敘述）
+
+**負責人**：Client Side RD（使用 AI 工具）
+
+**工作內容**：
+1. 將生成的 Mermaid Sequence Diagram 提供給 AI 工具
+2. 要求 AI 工具根據 Mermaid 代碼生成結構化的自然語言敘述
+3. Description 應包含：
    - 流程概述
    - 參與者說明
    - 流程步驟詳述
    - 技術備註
    - 前置條件與限制
 
-**產出**：`description.md`
+**AI 提示詞範例**：
+
+```
+請根據以下 Mermaid Sequence Diagram，生成結構化的自然語言敘述。
+
+Mermaid 代碼：
+[貼上 mermaid.md 內容]
+
+要求：
+1. 包含流程概述、參與者說明、流程步驟詳述、技術備註
+2. 使用 Markdown 格式
+3. 結構清晰，易於閱讀
+```
+
+**產出**：`description.md`（結構化的自然語言敘述）
 
 **估時**：
-- Junior：1-2 天（每個 Flow）
-- Mid-level：0.5-1 天（每個 Flow）
-- Senior：0.5 天（每個 Flow）
+- 使用 AI 工具：0.1 天（每個 Flow，主要是審查和調整）
+- 手動生成：0.5-1 天（每個 Flow，不推薦）
 
-#### 2.2 產生 YAML Flow Spec
+#### 2.4 AI 工具生成 YAML Flow Spec
 
-**負責人**：Client Side RD（可使用 AI 輔助）
+**負責人**：Client Side RD（使用 AI 工具）
 
 **工作內容**：
-1. 根據 `mermaid.md`、`description.md`、API Spec 產生結構化的 YAML 規格檔
-2. 包含以下結構：
-   - Flow 資訊（flow_id、flow_type、flow_name）
+1. 將 `mermaid.md`、`description.md`、API Spec 提供給 AI 工具
+2. 要求 AI 工具根據這些資料生成結構化的 YAML Flow Spec
+3. YAML Flow Spec 應包含：
+   - Flow 資訊（flow_id、flow_type、flow_name、parent_flow_id）
    - Mermaid 代碼
    - Description
    - API Endpoints（從 API Spec 提取）
@@ -481,14 +600,34 @@ wss://api.example.com/chat/websocket/web-chat
    - System Behaviors
    - Notes
 
-**產出**：`flow_spec.yaml`
+**AI 提示詞範例**：
+
+```
+請根據以下資料，生成 YAML Flow Spec。
+
+資料：
+1. Mermaid 代碼：[貼上 mermaid.md 內容]
+2. Description：[貼上 description.md 內容]
+3. API Spec：[貼上相關的 API Spec 內容]
+4. PRD：[貼上相關的 PRD 內容]
+5. UI/UX Spec：[貼上相關的 UI/UX Spec 內容]
+
+要求：
+1. 遵循 YAML Flow Spec 結構
+2. 提取所有 API Endpoints
+3. 提取所有 Scenarios
+4. 提取所有 User Actions
+5. 提取所有 System Behaviors
+6. 標註 Package 類型（external/internal）
+```
+
+**產出**：`flow_spec.yaml`（結構化的 YAML 規格檔）
 
 **估時**：
-- Junior：2-3 天（每個 Flow，使用 AI 輔助可縮短至 1-2 天）
-- Mid-level：1-2 天（每個 Flow，使用 AI 輔助可縮短至 0.5-1 天）
-- Senior：0.5-1 天（每個 Flow，使用 AI 輔助可縮短至 0.5 天）
+- 使用 AI 工具：0.2-0.3 天（每個 Flow，主要是審查和調整）
+- 手動生成：1-2 天（每個 Flow，不推薦）
 
-#### 2.3 Input 目錄結構
+#### 2.5 Input 目錄結構
 
 ```
 Input/
@@ -496,10 +635,39 @@ Input/
     └── {Feature名稱}/
         ├── README.md              # Feature 說明文件
         └── [流程資料夾]/
-            ├── mermaid.md         # Mermaid 流程圖代碼
-            ├── description.md     # 自然語言敘述
-            └── flow_spec.yaml     # YAML 規格檔
+            ├── mermaid.md         # Mermaid 流程圖代碼（AI 生成）
+            ├── description.md     # 自然語言敘述（AI 生成）
+            └── flow_spec.yaml     # YAML 規格檔（AI 生成）
 ```
+
+#### 2.6 階段 2 完整流程總結
+
+**工作流程**：
+
+1. **Client Side RD** 提供自然語言敘述（基於 PRD、API Spec、UI/UX Spec）
+2. **AI 工具** 生成 `mermaid.md`（Mermaid Sequence Diagram）
+3. **AI 工具** 生成 `description.md`（結構化的自然語言敘述）
+4. **AI 工具** 生成 `flow_spec.yaml`（結構化的 YAML 規格檔）
+5. **Client Side RD** 審查和調整所有產出
+
+**總估時**（使用 AI 工具）：
+- Junior：0.5-1 天（每個 Flow）
+- Mid-level：0.25-0.5 天（每個 Flow）
+- Senior：0.25 天（每個 Flow）
+
+**總估時**（手動生成，不推薦）：
+- Junior：3-5 天（每個 Flow）
+- Mid-level：2-3 天（每個 Flow）
+- Senior：1-2 天（每個 Flow）
+
+**檢查清單**：
+- [ ] `mermaid.md` 包含 `@feature` 和 `@flow` 標註
+- [ ] `mermaid.md` 遵循 Clean Architecture 分層
+- [ ] `description.md` 包含完整的流程說明
+- [ ] `flow_spec.yaml` 包含完整的 Flow 資訊
+- [ ] `flow_spec.yaml` 中的 API Endpoints 正確
+- [ ] `flow_spec.yaml` 中的 Package 類型標註正確
+- [ ] Flow 關係正確（parent_flow_id）
 
 ---
 
@@ -766,10 +934,10 @@ P0 / P1 / P2 / P3
 |------|--------|-----------|--------|
 | **階段 0：需求收集** | PM/BE/Designer 提供文件 | PM/BE/Designer 提供文件 | PM/BE/Designer 提供文件 |
 | **階段 1：需求分析與流程設計** | 5-8 天 | 3-5 天 | 1.5-3 天 |
-| **階段 2：產生 Input 資料** | 3-5 天 | 1.5-3 天 | 1-2 天 |
+| **階段 2：產生 Input 資料（AI 輔助）** | 0.5-1 天 | 0.25-0.5 天 | 0.25 天 |
 | **階段 3：AI 生成 TDD** | 3-5 天 | 2-3 天 | 1-2 天 |
 | **階段 4：生成 Ticket 與估時** | 1-2 天 | 0.5-1 天 | 0.5 天 |
-| **總計** | **12-20 天** | **7-12 天** | **4-7.5 天** |
+| **總計** | **9-15 天** | **5.75-9.5 天** | **3-6.75 天** |
 
 ### 完整流程估時（手動，不建議）
 
@@ -777,7 +945,7 @@ P0 / P1 / P2 / P3
 |------|--------|-----------|--------|
 | **階段 0：需求收集** | PM/BE/Designer 提供文件 | PM/BE/Designer 提供文件 | PM/BE/Designer 提供文件 |
 | **階段 1：需求分析與流程設計** | 5-8 天 | 3-5 天 | 1.5-3 天 |
-| **階段 2：產生 Input 資料** | 6-10 天 | 4-6 天 | 2-3 天 |
+| **階段 2：產生 Input 資料（手動，不推薦）** | 3-5 天 | 2-3 天 | 1-2 天 |
 | **階段 3：手動生成 TDD** | 10-15 天 | 7-10 天 | 5-7 天 |
 | **階段 4：生成 Ticket 與估時** | 3-5 天 | 2-3 天 | 1-2 天 |
 | **總計** | **24-38 天** | **16-24 天** | **9.5-15 天** |
