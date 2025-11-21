@@ -1,0 +1,37 @@
+{
+  "title": "LiveChat & PrematchComment TDD",
+  "description": "Technical Design Document for LiveChat and PrematchComment Features",
+  "author": "TDD Team",
+  "language": "zh-tw",
+  "gitbook": "3.2.3",
+  "root": ".",
+  "structure": {
+    "readme": "README.md",
+    "summary": "SUMMARY.md"
+  },
+  "plugins": [
+    "mermaid-gb3",
+    "theme-comscore",
+    "search",
+    "sharing",
+    "fontsettings"
+  ],
+  "pluginsConfig": {
+    "mermaid-gb3": {
+      "theme": "default"
+    },
+    "sharing": {
+      "facebook": true,
+      "twitter": true,
+      "google": false,
+      "weibo": false,
+      "instapaper": false,
+      "vk": false,
+      "all": [
+        "facebook", "google", "twitter",
+        "weibo", "instapaper"
+      ]
+    }
+  }
+}
+
