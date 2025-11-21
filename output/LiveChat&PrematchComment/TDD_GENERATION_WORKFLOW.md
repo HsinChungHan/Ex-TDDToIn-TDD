@@ -277,6 +277,14 @@ wss://api.example.com/chat/websocket/web-chat
 ## 訊息格式
 
 ### 訂閱訊息
+（JSON 格式，見下方範例）
+
+### 接收訊息
+（JSON 格式，見下方範例）
+```
+
+**訂閱訊息 JSON 範例**：
+
 ```json
 {
   "type": "subscribe",
@@ -284,7 +292,8 @@ wss://api.example.com/chat/websocket/web-chat
 }
 ```
 
-### 接收訊息
+**接收訊息 JSON 範例**：
+
 ```json
 {
   "type": "message",
