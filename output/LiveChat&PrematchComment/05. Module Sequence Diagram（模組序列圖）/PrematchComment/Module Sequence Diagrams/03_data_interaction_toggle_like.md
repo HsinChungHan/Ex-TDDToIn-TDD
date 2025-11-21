@@ -69,11 +69,94 @@ sequenceDiagram
     Chat-->>PrematchComment: 200 OK（更新成功）
 ```
 
+**Mermaid 語法（可複製）：**
+
+```
+sequenceDiagram
+    autonumber
+    actor User
+    box rgb(255, 248, 220) App
+        participant PrematchComment as PrematchComment Package
+        participant MainApp as Main App
+        participant PersonalPage as PersonalPage Package(external)
+        participant FComSharedFlow as FComSharedFlow Package(external)
+    end
+    participant Chat as Chat API Server
+    
+    User->>PrematchComment: 點擊 Like 按鈕
+    note over PrematchComment: 點擊 Like 按鈕時觸發登入檢查
+    PrematchComment->>MainApp: APICoordinator.shared.accountManager 檢查登入狀態
+    
+    alt [使用者已登入]
+        MainApp-->>PrematchComment: 已登入
+        note over PrematchComment: 通過登入檢查
+    else [使用者未登入]
+        MainApp-->>PrematchComment: 未登入
+        PrematchComment->>MainApp: route(to: .personalPage)
+        MainApp->>PersonalPage: 跳轉到 PersonalPage
+        PersonalPage->>PersonalPage: 完成 user 登入流程
+        PersonalPage-->>PrematchComment: 登入成功（回跳至原頁面）
+    end
+    
+    note over PrematchComment: 立即更新畫面上的 Like 數（Optimistic UI）
+    PrematchComment-->>User: 顯示已點讚狀態 + Like +1
+    PrematchComment->>Chat: POST /chat/match/comment/like { commentId }
+    Chat-->>PrematchComment: 200 OK（更新成功）
+```
+
 ## 模組序列圖（架構設計）
 
 以下為轉換後的模組序列圖，展示 Clean Architecture 各層級的互動：
 
 ```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    box rgb(207,232,255) UI Layer
+        participant PrematchCommentView
+    end
+    box rgb(255,250,205) Domain Layer
+        participant PrematchCommentFeature
+        participant ToggleLikeUseCase
+    end
+    box rgb(240,240,240) Data & Infrastructure Layer
+        participant PrematchCommentRepository
+        participant PrematchCommentClient
+        participant PrematchCommentAPI
+    end
+    participant PersonalPagePackage as PersonalPage Package (External)
+    participant Server
+
+    Note over User,PrematchCommentView: 用戶點擊 Like 按鈕
+    User->>PrematchCommentView: 點擊 Like 按鈕
+    PrematchCommentView->>PrematchCommentFeature: toggleLike(commentId: String)
+    PrematchCommentFeature->>PrematchCommentFeature: 檢查登入狀態（透過 Main App）
+    alt 使用者已登入
+        PrematchCommentFeature->>PrematchCommentFeature: 通過登入檢查
+        PrematchCommentFeature->>PrematchCommentFeature: 立即更新畫面上的 Like 數（Optimistic UI）
+        PrematchCommentFeature-->>PrematchCommentView: 更新 State
+        PrematchCommentView-->>User: 顯示已點讚狀態 + Like +1
+        PrematchCommentFeature->>ToggleLikeUseCase: execute(input: ToggleLikeInput)
+        ToggleLikeUseCase->>PrematchCommentRepository: toggleLike(commentId: String)
+        PrematchCommentRepository->>PrematchCommentClient: toggleLike(commentId: String)
+        PrematchCommentClient->>PrematchCommentAPI: POST /chat/match/comment/like
+        PrematchCommentAPI->>Server: POST /chat/match/comment/like { commentId }
+        Server-->>PrematchCommentAPI: 200 OK（更新成功）
+        PrematchCommentAPI-->>PrematchCommentClient: Comment DTO
+        PrematchCommentClient-->>PrematchCommentRepository: Comment DTO
+        PrematchCommentRepository-->>ToggleLikeUseCase: Comment Entity
+        ToggleLikeUseCase-->>PrematchCommentFeature: Output(comment: Comment)
+        PrematchCommentFeature-->>PrematchCommentView: 更新 State
+    else 使用者未登入
+        PrematchCommentFeature->>PersonalPagePackage: route(to: .personalPage)
+        PersonalPagePackage->>PersonalPagePackage: 完成 user 登入流程
+        PersonalPagePackage-->>PrematchCommentFeature: 登入成功（回跳至原頁面）
+    end
+```
+
+**Mermaid 語法（可複製）：**
+
+```
 sequenceDiagram
     autonumber
     actor User

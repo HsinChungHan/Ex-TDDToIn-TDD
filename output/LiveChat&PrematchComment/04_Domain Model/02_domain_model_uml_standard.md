@@ -71,6 +71,77 @@ classDiagram
     PagingInfo *-- Cursor : contains
 ```
 
+**Mermaid 語法（可複製）：**
+
+```
+classDiagram
+    class Comment {
+        +String id
+        +String content
+        +Int likeCount
+        +String authorId
+        +String? authorNickname
+        +String? parentId
+        +Date createdAt
+        +String refId
+    }
+    
+    class CommentMeta {
+        +String id
+        +Int commentCount
+        +Int betCount
+        +String refId
+    }
+    
+    class UserInfo {
+        +String id
+        +String? nickname
+        +String? avatar
+    }
+    
+    class Message {
+        +String id
+        +String content
+        +Int messageNo
+        +String authorId
+        +String? authorNickname
+        +MessageType messageType
+        +Date createdAt
+        +String chatroomId
+    }
+    
+    class ChatroomInfo {
+        +String id
+        +String chatroomId
+        +Int lastMessageNo
+        +String refId
+    }
+    
+    class SortMode {
+        +String value
+    }
+    
+    class Cursor {
+        +String? value
+    }
+    
+    class PagingInfo {
+        +Bool hasMore
+        +Cursor? nextCursor
+    }
+    
+    class MessageType {
+        +String value
+    }
+    
+    Comment --|> UserInfo : has author
+    Comment --> Comment : references (parentId)
+    Comment --|> CommentMeta : belongs to
+    Message --|> UserInfo : has author
+    Message --|> ChatroomInfo : belongs to
+    PagingInfo *-- Cursor : contains
+```
+
 ## 關係說明
 
 ### Association（關聯）
@@ -88,6 +159,28 @@ classDiagram
 ## 語意化關係圖
 
 ```mermaid
+flowchart TD
+    Comment["Comment<br/>(留言實體)"]
+    CommentMeta["CommentMeta<br/>(留言統計實體)"]
+    UserInfo["UserInfo<br/>(用戶資訊實體)"]
+    Message["Message<br/>(聊天訊息實體)"]
+    ChatroomInfo["ChatroomInfo<br/>(聊天室資訊實體)"]
+    SortMode["SortMode<br/>(排序模式值物件)"]
+    Cursor["Cursor<br/>(分頁游標值物件)"]
+    PagingInfo["PagingInfo<br/>(分頁資訊值物件)"]
+    MessageType["MessageType<br/>(訊息類型值物件)"]
+    
+    Comment -->|has author| UserInfo
+    Comment -->|references| Comment
+    Comment -->|belongs to| CommentMeta
+    Message -->|has author| UserInfo
+    Message -->|belongs to| ChatroomInfo
+    PagingInfo -->|contains| Cursor
+```
+
+**Mermaid 語法（可複製）：**
+
+```
 flowchart TD
     Comment["Comment<br/>(留言實體)"]
     CommentMeta["CommentMeta<br/>(留言統計實體)"]

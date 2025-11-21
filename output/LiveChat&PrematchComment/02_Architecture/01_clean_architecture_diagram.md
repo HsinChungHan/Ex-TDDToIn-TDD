@@ -77,6 +77,83 @@ flowchart TD
     class ExternalPackagesPlaceholder externalPackage
 ```
 
+**Mermaid 語法（可複製）：**
+
+```
+flowchart TD
+    subgraph UILayer["UI Layer"]
+        UILayerPlaceholder["3 個 View"]
+    end
+
+    subgraph DomainLayer["Domain Layer"]
+        subgraph FeatureLayer["Feature Layer"]
+            FeatureLayerPlaceholder["2 個 Feature"]
+        end
+        subgraph UseCaseLayer["UseCase Layer"]
+            UseCaseLayerPlaceholder["9 個 UseCase"]
+        end
+    end
+
+    subgraph DataInfraLayer["Data & Infrastructure Layer"]
+        subgraph RepositoryLayer["Repository Layer"]
+            RepositoryLayerPlaceholder["2 個 Repository"]
+        end
+        subgraph ClientLayer["Client Layer"]
+            ClientLayerPlaceholder["3 個 Client"]
+        end
+        subgraph APILayer["API Layer"]
+            APILayerPlaceholder["2 個 API"]
+        end
+    end
+
+    subgraph DomainModelLayer["Domain Model Layer"]
+        subgraph EntityLayer["Entity"]
+            EntityLayerPlaceholder["5 個 Entity"]
+        end
+        subgraph ValueObjectLayer["Value Object"]
+            ValueObjectLayerPlaceholder["3 個 Value Object"]
+        end
+    end
+
+    subgraph ProtocolLayer["Protocol Layer"]
+        ProtocolLayerPlaceholder["Adapter Protocols"]
+    end
+
+    subgraph ExternalPackages["External Packages"]
+        ExternalPackagesPlaceholder["3 個 External Package"]
+    end
+
+    %% 依賴關係
+    UILayerPlaceholder --> FeatureLayerPlaceholder
+    FeatureLayerPlaceholder --> UseCaseLayerPlaceholder
+    UseCaseLayerPlaceholder --> RepositoryLayerPlaceholder
+    UseCaseLayerPlaceholder --> ProtocolLayerPlaceholder
+    RepositoryLayerPlaceholder --> ClientLayerPlaceholder
+    ClientLayerPlaceholder --> APILayerPlaceholder
+    RepositoryLayerPlaceholder -.->|uses| EntityLayerPlaceholder
+    RepositoryLayerPlaceholder -.->|uses| ValueObjectLayerPlaceholder
+    ProtocolLayerPlaceholder -.->|implements| ExternalPackagesPlaceholder
+
+    %% Styling
+    classDef uiLayer fill:#CFE8FF
+    classDef domainLayer fill:#FFFACD
+    classDef protocolLayer fill:#FFE4E1,stroke:#FF6B6B,stroke-width:2px
+    classDef repositoryLayer fill:#E8F4F8
+    classDef clientLayer fill:#F0F8E8
+    classDef apiLayer fill:#FFF8E8
+    classDef domainModel fill:#E6E6FA
+    classDef externalPackage fill:#E6F3FF
+
+    class UILayerPlaceholder uiLayer
+    class FeatureLayerPlaceholder,UseCaseLayerPlaceholder domainLayer
+    class ProtocolLayerPlaceholder protocolLayer
+    class RepositoryLayerPlaceholder repositoryLayer
+    class ClientLayerPlaceholder clientLayer
+    class APILayerPlaceholder apiLayer
+    class EntityLayerPlaceholder,ValueObjectLayerPlaceholder domainModel
+    class ExternalPackagesPlaceholder externalPackage
+```
+
 ## 高階架構說明
 
 | Layer | 子層級 | 模組數量 | 職責 |
@@ -119,6 +196,153 @@ Data & Infrastructure Layer - API Layer (2 APIs)
 **相關文件**：[HLD UML](https://yjpkzjwmw8en.jp.larksuite.com/wiki/ZqS1wNGgMiOB8AknhrmjCYdtpIh?from=from_copylink)
 
 ```mermaid
+flowchart TD
+    subgraph UILayer["UI Layer"]
+        RaceDetailView["RaceDetailView"]
+        PrematchCommentView["PrematchCommentView"]
+        LiveDetailView["LiveDetailView"]
+    end
+
+    subgraph DomainLayer["Domain Layer"]
+        subgraph FeatureLayer["Feature Layer"]
+            PrematchCommentFeature["PrematchCommentFeature"]
+            LiveChatFeature["LiveChatFeature"]
+        end
+        subgraph UseCaseLayer["UseCase Layer"]
+            ReloadCommentListUseCase["ReloadCommentListUseCase"]
+            PublishCommentUseCase["PublishCommentUseCase"]
+            ToggleLikeUseCase["ToggleLikeUseCase"]
+            LoadRepliesUseCase["LoadRepliesUseCase"]
+            NavigateToProfileUseCase["NavigateToProfileUseCase"]
+            SendChatMessageUseCase["SendChatMessageUseCase"]
+            JoinChatroomUseCase["JoinChatroomUseCase"]
+            LeaveChatroomUseCase["LeaveChatroomUseCase"]
+            BlockUserUseCase["BlockUserUseCase"]
+        end
+    end
+
+    subgraph DataInfraLayer["Data & Infrastructure Layer"]
+        subgraph RepositoryLayer["Repository Layer"]
+            PrematchCommentRepository["PrematchCommentRepository"]
+            LiveChatRepository["LiveChatRepository"]
+        end
+        subgraph ClientLayer["Client Layer"]
+            PrematchCommentClient["PrematchCommentClient (HTTP)"]
+            LiveChatClient["LiveChatClient (HTTP)"]
+            ChatWebSocketClient["ChatWebSocketClient (WebSocket)"]
+        end
+        subgraph APILayer["API Layer"]
+            PrematchCommentAPI["PrematchCommentAPI"]
+            ChatAPI["ChatAPI"]
+        end
+    end
+
+    subgraph DomainModelLayer["Domain Model Layer"]
+        Comment["Comment (Entity)"]
+        CommentMeta["CommentMeta (Entity)"]
+        UserInfo["UserInfo (Entity)"]
+        Message["Message (Entity)"]
+        ChatroomInfo["ChatroomInfo (Entity)"]
+        SortMode["SortMode (Value Object)"]
+        Cursor["Cursor (Value Object)"]
+        PagingInfo["PagingInfo (Value Object)"]
+    end
+
+    subgraph ProtocolLayer["Protocol Layer"]
+        FComSharedFlowAdapterProtocol["&lt;FComSharedFlowAdapter&gt;"]
+        PersonalPageAdapterProtocol["&lt;PersonalPageAdapter&gt;"]
+        EventStatusNotifiableProtocol["&lt;EventStatusNotifiable&gt;"]
+    end
+
+    subgraph ExternalPackages["External Packages"]
+        FactsCenterPackage["FactsCenter Package (External)"]
+        PersonalPagePackage["PersonalPage Package (External)"]
+        FComSharedFlowPackage["FComSharedFlow Package (External)"]
+    end
+
+    %% UI to Feature
+    RaceDetailView --> PrematchCommentFeature
+    PrematchCommentView --> PrematchCommentFeature
+    LiveDetailView --> LiveChatFeature
+
+    %% Feature to UseCase
+    PrematchCommentFeature --> ReloadCommentListUseCase
+    PrematchCommentFeature --> PublishCommentUseCase
+    PrematchCommentFeature --> ToggleLikeUseCase
+    PrematchCommentFeature --> LoadRepliesUseCase
+    PrematchCommentFeature --> NavigateToProfileUseCase
+    LiveChatFeature --> SendChatMessageUseCase
+    LiveChatFeature --> JoinChatroomUseCase
+    LiveChatFeature --> LeaveChatroomUseCase
+    LiveChatFeature --> NavigateToProfileUseCase
+    LiveChatFeature --> BlockUserUseCase
+
+    %% UseCase to Repository
+    ReloadCommentListUseCase --> PrematchCommentRepository
+    PublishCommentUseCase --> PrematchCommentRepository
+    ToggleLikeUseCase --> PrematchCommentRepository
+    LoadRepliesUseCase --> PrematchCommentRepository
+    SendChatMessageUseCase --> LiveChatRepository
+    JoinChatroomUseCase --> LiveChatRepository
+    LeaveChatroomUseCase --> LiveChatRepository
+
+    %% Repository to Client
+    PrematchCommentRepository --> PrematchCommentClient
+    LiveChatRepository --> LiveChatClient
+    LiveChatRepository --> ChatWebSocketClient
+
+    %% Client to API
+    PrematchCommentClient --> PrematchCommentAPI
+    LiveChatClient --> ChatAPI
+    ChatWebSocketClient --> ChatAPI
+
+    %% Repository uses Domain Model
+    PrematchCommentRepository -.->|uses| Comment
+    PrematchCommentRepository -.->|uses| CommentMeta
+    PrematchCommentRepository -.->|uses| UserInfo
+    PrematchCommentRepository -.->|uses| SortMode
+    PrematchCommentRepository -.->|uses| Cursor
+    PrematchCommentRepository -.->|uses| PagingInfo
+    LiveChatRepository -.->|uses| Message
+    LiveChatRepository -.->|uses| ChatroomInfo
+
+    %% UseCase to Protocol
+    PublishCommentUseCase --> FComSharedFlowAdapterProtocol
+    PublishCommentUseCase --> PersonalPageAdapterProtocol
+    SendChatMessageUseCase --> FComSharedFlowAdapterProtocol
+    SendChatMessageUseCase --> PersonalPageAdapterProtocol
+    ToggleLikeUseCase --> PersonalPageAdapterProtocol
+    NavigateToProfileUseCase --> PersonalPageAdapterProtocol
+    PrematchCommentFeature --> EventStatusNotifiableProtocol
+
+    %% Protocol to External Package (Adapter Implementation in Main App)
+    FComSharedFlowAdapterProtocol -.->|implements| FComSharedFlowPackage
+    PersonalPageAdapterProtocol -.->|implements| PersonalPagePackage
+    EventStatusNotifiableProtocol -.->|implements| FactsCenterPackage
+
+    %% Styling
+    classDef uiLayer fill:#CFE8FF
+    classDef domainLayer fill:#FFFACD
+    classDef protocolLayer fill:#FFE4E1,stroke:#FF6B6B,stroke-width:2px
+    classDef repositoryLayer fill:#E8F4F8
+    classDef clientLayer fill:#F0F8E8
+    classDef apiLayer fill:#FFF8E8
+    classDef domainModel fill:#E6E6FA
+    classDef externalPackage fill:#E6F3FF
+
+    class RaceDetailView,PrematchCommentView,LiveDetailView uiLayer
+    class PrematchCommentFeature,LiveChatFeature,ReloadCommentListUseCase,PublishCommentUseCase,ToggleLikeUseCase,LoadRepliesUseCase,NavigateToProfileUseCase,SendChatMessageUseCase,JoinChatroomUseCase,LeaveChatroomUseCase,BlockUserUseCase domainLayer
+    class FComSharedFlowAdapterProtocol,PersonalPageAdapterProtocol,EventStatusNotifiableProtocol protocolLayer
+    class PrematchCommentRepository,LiveChatRepository repositoryLayer
+    class PrematchCommentClient,LiveChatClient,ChatWebSocketClient clientLayer
+    class PrematchCommentAPI,ChatAPI apiLayer
+    class Comment,CommentMeta,UserInfo,Message,ChatroomInfo,SortMode,Cursor,PagingInfo domainModel
+    class FactsCenterPackage,PersonalPagePackage,FComSharedFlowPackage externalPackage
+```
+
+**Mermaid 語法（可複製）：**
+
+```
 flowchart TD
     subgraph UILayer["UI Layer"]
         RaceDetailView["RaceDetailView"]

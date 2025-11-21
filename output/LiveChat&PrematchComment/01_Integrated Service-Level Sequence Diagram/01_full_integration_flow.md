@@ -168,6 +168,164 @@ sequenceDiagram
     LiveChatFeature-->>LiveDetailView: 更新 State
 ```
 
+**Mermaid 語法（可複製）：**
+
+```
+sequenceDiagram
+    autonumber
+    actor User
+    box rgb(207,232,255) UI Layer
+        participant RaceDetailView
+        participant PrematchCommentView
+        participant LiveDetailView
+    end
+    box rgb(255,250,205) Domain Layer
+        participant PrematchCommentFeature
+        participant LiveChatFeature
+        participant ReloadCommentListUseCase
+        participant PublishCommentUseCase
+        participant SendChatMessageUseCase
+        participant ToggleLikeUseCase
+        participant LoadRepliesUseCase
+    end
+    box rgb(240,240,240) Data & Infrastructure Layer
+        participant PrematchCommentRepository
+        participant LiveChatRepository
+        participant PrematchCommentClient
+        participant LiveChatClient
+        participant ChatWebSocketClient
+        participant PrematchCommentAPI
+        participant ChatAPI
+    end
+    participant FactsCenterPackage as FactsCenter Package (External)
+    participant PersonalPagePackage as PersonalPage Package (External)
+    participant FComSharedFlowPackage as FComSharedFlow Package (External)
+    participant Server
+
+    Note over User,RaceDetailView: 用戶進入 Race Detail Page
+    User->>RaceDetailView: 進入 Race Detail Page
+    RaceDetailView->>PrematchCommentFeature: onAppear
+    PrematchCommentFeature->>ReloadCommentListUseCase: execute(triggerType: .init)
+    ReloadCommentListUseCase->>PrematchCommentRepository: getUserInfo()
+    PrematchCommentRepository->>PrematchCommentClient: getUserInfo()
+    PrematchCommentClient->>PrematchCommentAPI: GET /{TBD 個人資訊 API}
+    PrematchCommentAPI->>Server: GET /{TBD 個人資訊 API}
+    Server-->>PrematchCommentAPI: userInfo
+    PrematchCommentAPI-->>PrematchCommentClient: userInfo DTO
+    PrematchCommentClient-->>PrematchCommentRepository: userInfo DTO
+    PrematchCommentRepository-->>ReloadCommentListUseCase: UserInfo Entity
+    ReloadCommentListUseCase->>PrematchCommentRepository: getCommentMeta(refId: String)
+    PrematchCommentRepository->>PrematchCommentClient: getCommentMeta(refId: String)
+    PrematchCommentClient->>PrematchCommentAPI: GET /chat/match/comment/info/{refId}
+    PrematchCommentAPI->>Server: GET /chat/match/comment/info/{refId}
+    Server-->>PrematchCommentAPI: { commentCount, betCount }
+    PrematchCommentAPI-->>PrematchCommentClient: CommentMeta DTO
+    PrematchCommentClient-->>PrematchCommentRepository: CommentMeta DTO
+    PrematchCommentRepository-->>ReloadCommentListUseCase: CommentMeta Entity
+    ReloadCommentListUseCase-->>PrematchCommentFeature: Output(comments: [], meta: CommentMeta)
+    PrematchCommentFeature-->>RaceDetailView: 更新 State
+
+    Note over User,PrematchCommentView: 用戶進入 Prematch Comment Page
+    User->>PrematchCommentView: 進入 Prematch Comment Page
+    PrematchCommentView->>PrematchCommentFeature: onAppear
+    PrematchCommentFeature->>ReloadCommentListUseCase: execute(triggerType: .init, mode: .top)
+    ReloadCommentListUseCase->>PrematchCommentRepository: getComments(refId: String, mode: .top)
+    PrematchCommentRepository->>PrematchCommentClient: getComments(refId: String, mode: .top)
+    PrematchCommentClient->>PrematchCommentAPI: GET /chat/match/comment/popular
+    PrematchCommentAPI->>Server: GET /chat/match/comment/popular
+    Server-->>PrematchCommentAPI: comments (sorted by like)
+    PrematchCommentAPI-->>PrematchCommentClient: [Comment] DTO
+    PrematchCommentClient-->>PrematchCommentRepository: [Comment] DTO
+    PrematchCommentRepository-->>ReloadCommentListUseCase: [Comment] Entity
+    ReloadCommentListUseCase-->>PrematchCommentFeature: Output(comments: [Comment])
+    PrematchCommentFeature-->>PrematchCommentView: 更新 State
+
+    Note over FactsCenterPackage,Server: Event Status 訂閱（在進入 Race Detail Page 時）
+    FactsCenterPackage->>Server: WebSocket 訂閱 Event Status
+    Note over FactsCenterPackage: 外部 Package，內部實作不在此 TDD 範圍內
+
+    Note over User,PrematchCommentView: 用戶發送留言
+    User->>PrematchCommentView: 點擊輸入框
+    PrematchCommentView->>PrematchCommentFeature: tapInputField
+    PrematchCommentFeature->>PrematchCommentFeature: 檢查登入狀態（透過 Main App）
+    alt 未登入
+        PrematchCommentFeature->>PersonalPagePackage: route(to: .personalPage)
+        PersonalPagePackage->>PersonalPagePackage: 完成登入流程
+        PersonalPagePackage-->>PrematchCommentFeature: 登入成功
+    end
+    User->>PrematchCommentView: 輸入並送出 Comment
+    PrematchCommentView->>PrematchCommentFeature: publishComment(content: String)
+    PrematchCommentFeature->>PublishCommentUseCase: execute(input: PublishCommentInput)
+    PublishCommentUseCase->>PublishCommentUseCase: 檢查 nickname（透過 Main App）
+    alt nickname 不存在
+        PublishCommentUseCase->>FComSharedFlowPackage: CreatNickName API
+        FComSharedFlowPackage->>FComSharedFlowPackage: 建立 nickname
+        FComSharedFlowPackage-->>PublishCommentUseCase: nickname 建立成功
+    end
+    PublishCommentUseCase->>PrematchCommentRepository: publishComment(refId: String, content: String)
+    PrematchCommentRepository->>PrematchCommentClient: publishComment(refId: String, content: String)
+    PrematchCommentClient->>PrematchCommentAPI: POST /chat/match/comment
+    PrematchCommentAPI->>Server: POST /chat/match/comment
+    Server-->>PrematchCommentAPI: 201 Created（comment 資料）
+    PrematchCommentAPI-->>PrematchCommentClient: Comment DTO
+    PrematchCommentClient-->>PrematchCommentRepository: Comment DTO
+    PrematchCommentRepository-->>PublishCommentUseCase: Comment Entity
+    PublishCommentUseCase-->>PrematchCommentFeature: Output(comment: Comment)
+    PrematchCommentFeature-->>PrematchCommentView: 更新 State
+
+    Note over Server,FactsCenterPackage: Event Status 變更通知
+    Server-->>FactsCenterPackage: EventStatusChanged
+    FactsCenterPackage->>PrematchCommentFeature: eventStatus(didChange status: Int)
+    Note over FactsCenterPackage,PrematchCommentFeature: FactsCenter Package 透過 interface 通知 PrematchCommentFeature
+    alt event status 為 match_started
+        PrematchCommentFeature->>PrematchCommentView: 關閉 Prematch Comment Page
+        PrematchCommentView-->>User: 導回 Race Detail Page
+    end
+
+    Note over User,LiveDetailView: 用戶進入 Live Detail Page
+    User->>LiveDetailView: 進入 Live Detail Page
+    LiveDetailView->>LiveChatFeature: onAppear
+    LiveChatFeature->>LiveChatRepository: subscribeWebSocket()
+    LiveChatRepository->>ChatWebSocketClient: subscribe()
+    ChatWebSocketClient->>Server: WebSocket 訂閱
+    LiveChatRepository->>LiveChatClient: getChatroomInfo(refId: String)
+    LiveChatClient->>ChatAPI: GET /chat/match/{refId}
+    ChatAPI->>Server: GET /chat/match/{refId}
+    Server-->>ChatAPI: { chatroomId, lastMessageNo }
+    ChatAPI-->>LiveChatClient: ChatroomInfo DTO
+    LiveChatClient-->>LiveChatRepository: ChatroomInfo DTO
+    LiveChatRepository-->>LiveChatFeature: ChatroomInfo Entity
+
+    Note over User,LiveDetailView: 用戶發送聊天訊息
+    User->>LiveDetailView: 點擊輸入框
+    LiveDetailView->>LiveChatFeature: tapInputField
+    LiveChatFeature->>LiveChatFeature: 檢查登入狀態（透過 Main App）
+    alt 未登入
+        LiveChatFeature->>PersonalPagePackage: route(to: .personalPage)
+        PersonalPagePackage->>PersonalPagePackage: 完成登入流程
+        PersonalPagePackage-->>LiveChatFeature: 登入成功
+    end
+    User->>LiveDetailView: 輸入並送出 Chat
+    LiveDetailView->>LiveChatFeature: sendMessage(content: String)
+    LiveChatFeature->>SendChatMessageUseCase: execute(input: SendChatMessageInput)
+    SendChatMessageUseCase->>SendChatMessageUseCase: 檢查 nickname（透過 Main App）
+    alt nickname 不存在
+        SendChatMessageUseCase->>FComSharedFlowPackage: CreatNickName API
+        FComSharedFlowPackage->>FComSharedFlowPackage: 建立 nickname
+        FComSharedFlowPackage-->>SendChatMessageUseCase: nickname 建立成功
+    end
+    SendChatMessageUseCase->>LiveChatRepository: sendMessage(chatroomId: String, content: String)
+    LiveChatRepository->>LiveChatClient: sendMessage(chatroomId: String, content: String)
+    LiveChatClient->>ChatAPI: POST /chat/{matchId}/message
+    ChatAPI->>Server: POST /chat/{matchId}/message
+    Server-->>ChatAPI: 201 Created
+    ChatAPI-->>LiveChatClient: Message DTO
+    LiveChatClient-->>LiveChatRepository: Message DTO
+    LiveChatRepository-->>SendChatMessageUseCase: Message Entity
+    SendChatMessageUseCase-->>LiveChatFeature: Output(message: Message)
+    LiveChatFeature-->>LiveDetailView: 更新 State
+```
+
 ## 流程說明
 
 ### 1. 進入頁面初始化流程

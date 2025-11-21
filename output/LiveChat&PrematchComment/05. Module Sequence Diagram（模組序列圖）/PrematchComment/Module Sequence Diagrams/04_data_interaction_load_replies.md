@@ -55,11 +55,80 @@ sequenceDiagram
   end
 ```
 
+**Mermaid 語法（可複製）：**
+
+```
+sequenceDiagram
+  autonumber
+  actor User
+  participant App
+  participant Server as Server
+
+  User->>App: 點擊 12 replies
+  loop 每次最多 5 筆
+    App->>Server: GET /chat/match/comment/replies
+    Server-->>App: replies[<=5], nextCursor?
+    alt 有超過5筆
+      App-->>User: 顯示 Show more replies
+      User->>App: 點擊 Show more replies
+    else 不足5筆
+      App-->>User: 隱藏 Show more replies
+    end
+  end
+```
+
 ## 模組序列圖（架構設計）
 
 以下為轉換後的模組序列圖，展示 Clean Architecture 各層級的互動：
 
 ```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    box rgb(207,232,255) UI Layer
+        participant PrematchCommentView
+    end
+    box rgb(255,250,205) Domain Layer
+        participant PrematchCommentFeature
+        participant LoadRepliesUseCase
+    end
+    box rgb(240,240,240) Data & Infrastructure Layer
+        participant PrematchCommentRepository
+        participant PrematchCommentClient
+        participant PrematchCommentAPI
+    end
+    participant Server
+
+    Note over User,PrematchCommentView: 用戶點擊回覆數量
+    User->>PrematchCommentView: 點擊 12 replies
+    PrematchCommentView->>PrematchCommentFeature: loadReplies(commentId: String)
+    PrematchCommentFeature->>LoadRepliesUseCase: execute(input: LoadRepliesInput)
+    
+    loop 每次最多 5 筆
+        LoadRepliesUseCase->>PrematchCommentRepository: getReplies(commentId: String, cursor: Cursor?)
+        PrematchCommentRepository->>PrematchCommentClient: getReplies(commentId: String, cursor: Cursor?)
+        PrematchCommentClient->>PrematchCommentAPI: GET /chat/match/comment/replies
+        PrematchCommentAPI->>Server: GET /chat/match/comment/replies
+        Server-->>PrematchCommentAPI: replies[<=5], nextCursor?
+        PrematchCommentAPI-->>PrematchCommentClient: [Comment] DTO, PagingInfo DTO
+        PrematchCommentClient-->>PrematchCommentRepository: [Comment] DTO, PagingInfo DTO
+        PrematchCommentRepository-->>LoadRepliesUseCase: [Comment] Entity, PagingInfo Entity
+        LoadRepliesUseCase-->>PrematchCommentFeature: Output(replies: [Comment], pagingInfo: PagingInfo)
+        PrematchCommentFeature-->>PrematchCommentView: 更新 State
+        alt 有超過 5 筆
+            PrematchCommentView-->>User: 顯示 Show more replies
+            User->>PrematchCommentView: 點擊 Show more replies
+            PrematchCommentView->>PrematchCommentFeature: loadMoreReplies(commentId: String, cursor: Cursor)
+            PrematchCommentFeature->>LoadRepliesUseCase: execute(input: LoadRepliesInput)
+        else 不足 5 筆
+            PrematchCommentView-->>User: 隱藏 Show more replies
+        end
+    end
+```
+
+**Mermaid 語法（可複製）：**
+
+```
 sequenceDiagram
     autonumber
     actor User

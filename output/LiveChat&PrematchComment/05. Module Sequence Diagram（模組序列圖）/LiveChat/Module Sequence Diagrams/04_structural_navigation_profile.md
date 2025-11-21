@@ -45,11 +45,59 @@ sequenceDiagram
     MainApp-->>User: 顯示該使用者的個人主頁畫面
 ```
 
+**Mermaid 語法（可複製）：**
+
+```
+sequenceDiagram
+    autonumber
+    actor User
+    participant MainApp as Main App
+
+    User->>MainApp: 點擊使用者名稱及 Avatar
+
+    MainApp->>MainApp: UIViewController+routeToDestination.route(to destination: .personal)
+    note over MainApp: 透過 routeToDestination 跳轉到 User Profile Page
+    MainApp-->>User: 顯示該使用者的個人主頁畫面
+```
+
 ## 模組序列圖（架構設計）
 
 以下為轉換後的模組序列圖，展示 Clean Architecture 各層級的互動：
 
 ```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    box rgb(207,232,255) UI Layer
+        participant LiveDetailView
+    end
+    box rgb(255,250,205) Domain Layer
+        participant LiveChatFeature
+        participant NavigateToProfileUseCase
+    end
+    participant PersonalPageAdapterProtocol as "<PersonalPageAdapter>"
+
+    Note over User,LiveDetailView: 用戶點擊用戶名稱
+    User->>LiveDetailView: 點擊使用者名稱
+    LiveDetailView->>LiveChatFeature: tapUserName(userId: String)
+    LiveChatFeature-->>LiveDetailView: 顯示底部彈窗
+    LiveDetailView-->>User: 顯示底部彈窗（含「個人主頁」「Block this user」）
+
+    Note over User,LiveDetailView: 用戶選擇跳轉個人主頁
+    User->>LiveDetailView: 點擊 Go to Profile
+    LiveDetailView->>LiveChatFeature: navigateToProfile(userId: String)
+    LiveChatFeature->>NavigateToProfileUseCase: execute(input: NavigateToProfileInput)
+    NavigateToProfileUseCase->>PersonalPageAdapterProtocol: navigateToProfile(userId: String)
+    PersonalPageAdapterProtocol->>PersonalPageAdapterProtocol: 透過 routeToDestination 跳轉到 User Profile Page
+    PersonalPageAdapterProtocol-->>NavigateToProfileUseCase: Success
+    NavigateToProfileUseCase-->>LiveChatFeature: Output()
+    LiveChatFeature-->>LiveDetailView: 更新 State
+    LiveDetailView-->>User: 顯示該使用者的個人主頁畫面
+```
+
+**Mermaid 語法（可複製）：**
+
+```
 sequenceDiagram
     autonumber
     actor User
