@@ -82,6 +82,14 @@
    - YAML Flow Spec 到 TDD 轉換規範
    - 多流程整合規範
 
+11. **《TDD Markdown 格式規範》** (`TDD_rules/tdd_markdown_formatting_rules.md`)
+   - Markdown 列表格式規範（編號列表、項目列表、斷行）
+   - 標題與內容組織規範（標題層級、標題後空行）
+   - 檢查清單格式規範（語法、標題後空行）
+   - 流程說明格式規範（階段標題、步驟格式）
+   - 工作內容格式規範（標題後空行、步驟層級）
+   - MkDocs 配置要求（任務列表擴展）
+
 ---
 
 ## 規則衝突解決原則
@@ -150,6 +158,16 @@
 ---
 
 ## 文件生成規範
+
+### Markdown 格式要求
+
+所有 TDD 相關的 Markdown 文件必須遵循 `tdd_markdown_formatting_rules.md` 中的格式規範：
+
+- ✅ 列表格式正確（編號列表、項目列表、斷行）
+- ✅ 標題格式正確（標題層級、標題後空行）
+- ✅ 檢查清單格式正確（`- [ ]` 語法）
+- ✅ 流程說明格式正確（階段標題、步驟格式）
+- ✅ 工作內容格式正確（標題後空行、步驟層級）
 
 ### 輸出文件結構
 
@@ -230,6 +248,7 @@ output/
 - `TDD_rules/flow_coverage_check.md`
 - `TDD_rules/mermaid/common_mermaid_modifications.md`
 - `TDD_rules/tdd_input_processing_rules.md`
+- `TDD_rules/tdd_markdown_formatting_rules.md`
 
 ---
 
