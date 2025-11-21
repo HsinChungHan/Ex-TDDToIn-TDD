@@ -154,7 +154,9 @@ Client Side RD 自然語言敘述
 **負責人**：Client Side RD
 
 **工作內容**：
+
 1. 根據 PRD、API Spec、UI/UX Spec，用自然語言描述業務流程
+
 2. 敘述應包含：
    - 流程概述（Feature 名稱、Flow 類型、主要目的）
    - 參與者說明（User、View、Feature、UseCase、Repository、Client、API、External Package 等）
@@ -207,8 +209,11 @@ Client Side RD 自然語言敘述
 **負責人**：Client Side RD（使用 AI 工具）
 
 **工作內容**：
+
 1. 將自然語言敘述提供給 AI 工具（如 Cursor、Claude、ChatGPT）
+
 2. 要求 AI 工具根據敘述生成 Mermaid Sequence Diagram
+
 3. AI 工具應遵循以下規範：
    - 使用 `@feature: {FeatureName}` 標註 Feature
    - 使用 `@flow: Full` 或 `@flow: Sub` 標註 Flow 類型
@@ -246,8 +251,11 @@ Client Side RD 自然語言敘述
 **負責人**：Client Side RD（使用 AI 工具）
 
 **工作內容**：
+
 1. 將生成的 Mermaid Sequence Diagram 提供給 AI 工具
+
 2. 要求 AI 工具根據 Mermaid 代碼生成結構化的自然語言敘述
+
 3. Description 應包含：
    - 流程概述
    - 參與者說明
@@ -280,8 +288,11 @@ Mermaid 代碼：
 **負責人**：Client Side RD（使用 AI 工具）
 
 **工作內容**：
+
 1. 將 `mermaid.md`、`description.md`、API Spec 提供給 AI 工具
+
 2. 要求 AI 工具根據這些資料生成結構化的 YAML Flow Spec
+
 3. YAML Flow Spec 應包含：
    - Flow 資訊（flow_id、flow_type、flow_name、parent_flow_id）
    - Mermaid 代碼
@@ -415,12 +426,15 @@ Input/
 **負責人**：Client Side RD（使用 AI 輔助）
 
 **工作流程**：
+
 1. 根據 Clean Architecture 分層，識別所有需要開發的模組
+
 2. 按照依賴順序生成 Ticket：
    - Domain Model Layer（優先）
    - Data & Infrastructure Layer（次優先）
    - Domain Layer（UseCase → Feature）
    - UI Layer（最後）
+
 3. 為每個 Ticket 估算開發時間（Story Point → 實際工時）
 
 **產出**：所有開發 Ticket（位於 `output/12_Tickets/` 目錄）
@@ -471,6 +485,7 @@ Input/
 **負責人**：Client Side RD（使用 AI 輔助）
 
 **工作流程**：
+
 1. **分析實際實作**
    - 掃描 Codebase，識別實際實作的模組
    - 對比 TDD 文件中的設計與實際實作
