@@ -98,26 +98,28 @@ flowchart TD
 
 **負責人**：Client Side RD（可與 PM、BE、Designer 協作）
 
-**步驟**：
+##### 1. 閱讀並理解所有文件
 
-1. **閱讀並理解所有文件**
-   - 閱讀 PRD，理解業務需求和使用者故事
-   - 閱讀 API Spec，理解後端提供的 API 端點和資料結構
-   - 閱讀 UI/UX Spec，理解使用者互動流程和 UI 狀態
+1. 閱讀 PRD，理解業務需求和使用者故事
+2. 閱讀 API Spec，理解後端提供的 API 端點和資料結構
+3. 閱讀 UI/UX Spec，理解使用者互動流程和 UI 狀態
 
-2. **識別 Feature 邊界**
-   - 一個 Feature 對應一個業務功能模組
-   - 範例：PrematchComment、LiveChat
+##### 2. 識別 Feature 邊界
 
-3. **識別 Flow 類型**
-   - **主流程（Full Flow）**：完整的業務流程，從使用者觸發到完成
-   - **子流程（Sub Flow）**：主流程中的特定階段或分支流程
+1. 一個 Feature 對應一個業務功能模組
+2. 範例：PrematchComment、LiveChat
 
-4. **設計 Mermaid Sequence Diagram**
-   - 根據 PRD、API Spec、UI/UX Spec 設計流程
-   - 識別參與者（Participants）
-   - 設計互動流程
-   - 標註 Flow 類型（`@feature`、`@flow`）
+##### 3. 識別 Flow 類型
+
+1. **主流程（Full Flow）**：完整的業務流程，從使用者觸發到完成
+2. **子流程（Sub Flow）**：主流程中的特定階段或分支流程
+
+##### 4. 設計 Mermaid Sequence Diagram
+
+1. 根據 PRD、API Spec、UI/UX Spec 設計流程
+2. 識別參與者（Participants）
+3. 設計互動流程
+4. 標註 Flow 類型（`@feature`、`@flow`）
 
 **產出**：
 - Feature 列表
