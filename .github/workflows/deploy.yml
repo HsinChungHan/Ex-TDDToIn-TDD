@@ -37,8 +37,9 @@ jobs:
         uses: actions/configure-pages@v4
       
       - name: Build with MkDocs
-        run: mkdocs build
-        working_directory: output
+        run: |
+          cd output
+          mkdocs build
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
