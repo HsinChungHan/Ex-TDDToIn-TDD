@@ -38,12 +38,12 @@ jobs:
       
       - name: Build with MkDocs
         run: mkdocs build
-        working_directory: output/LiveChat&PrematchComment
+        working_directory: output
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: output/LiveChat&PrematchComment/site
+          path: output/site
       
       - name: Deploy to GitHub Pages
         id: deployment
