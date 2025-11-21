@@ -114,10 +114,210 @@ flowchart TD
 1. **主流程（Full Flow）**：完整的業務流程，從使用者觸發到完成
 2. **子流程（Sub Flow）**：主流程中的特定階段或分支流程
 
-##### 4. 設計 Mermaid Sequence Diagram
+##### 4. 從 User Story 決定 sequenceDiagram 數量
+
+**問題**：在初期只有 PRD 和 API doc 時，還無法確定具體的 View、UseCase 等 participants，如何決定一個 User Story 會對應哪些 sequenceDiagram？
+
+**解決方法**：採用**兩階段 sequenceDiagram 設計方法**
+
+###### 4.1 階段 1：業務流程圖（使用 User/App/Server）
+
+在初期階段，使用簡化的 participants 來理解業務流程：
+
+**Participants**：
+- `User`（actor）
+- `App`（Client Side，代表整個客戶端應用）
+- `Server`（Backend，代表後端服務）
+
+**目標**：
+- 快速理解業務流程
+- 專注於「使用者操作」和「API 呼叫」的對應關係
+- 不需要確定具體的 View/UseCase 名稱
+- 容易與 PM、BE 溝通
+
+**範例**：
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant App as App (Client Side)
+    participant Server as Server (Backend)
+
+    User->>App: 進入 Prematch Comment Page
+    App->>Server: GET /chat/match/comment/popular
+    Server-->>App: 評論列表
+    App-->>User: 顯示評論列表
+    
+    User->>App: 點擊輸入框
+    App->>App: 檢查登入狀態
+    alt 未登入
+        App->>User: 跳轉登入頁面
+    else 已登入
+        User->>App: 輸入評論內容
+        User->>App: 點擊送出
+        App->>Server: POST /chat/match/comment
+        Server-->>App: 評論建立成功
+        App-->>User: 更新評論列表
+    end
+```
+
+###### 4.2 從 User Story 切分 sequenceDiagram 的方法
+
+**步驟 1：分析 User Story 中的「使用者操作」**
+
+從 User Story 中提取所有使用者操作，例如：
+
+**User Story 範例**：
+> 作為用戶，我想要在賽事開始前發表評論，以便與其他用戶互動
+
+**提取的操作**：
+1. 進入 Prematch Comment Page（初始化）
+2. 點擊輸入框（互動）
+3. 輸入評論內容（UI 行為，可省略）
+4. 送出評論（互動）
+5. 點擊使用者頭像跳轉到 Profile（導航）
+
+**步驟 2：根據操作類型分類**
+
+將操作分類為三類：
+
+1. **Data Initialization / Refresh**
+   - 進入畫面時的初始化
+   - 手動 Refresh / Retry
+   - 切換 Tab 重新載入資料
+
+2. **Data Interaction**
+   - 會變動 Domain 狀態或呼叫 API 的操作
+   - 例如：送出評論、點讚、載入分頁、發送訊息
+
+3. **Structural Navigation**
+   - 涉及權限檢查、Auth、路由跳轉
+   - 例如：點擊使用者 → Profile、封鎖用戶
+
+**步驟 3：識別需要呼叫的 API**
+
+從 API doc 中找出每個操作對應的 API：
+
+- 初始化 → `GET /chat/match/comment/popular`
+- 送出評論 → `POST /chat/match/comment`
+- 點讚 → `POST /chat/match/comment/like`
+- 載入回覆 → `GET /chat/match/comment/replies`
+
+**步驟 4：決定 sequenceDiagram 數量**
+
+**原則**：
+- 每個「獨立的使用者操作 + API 呼叫」組合 = 1 張 sequenceDiagram
+- 相似的操作可以合併（使用 `alt`）
+- 純 UI 行為不畫圖
+
+**範例切分**：
+
+```
+User Story: 作為用戶，我想要在賽事開始前發表評論，以便與其他用戶互動
+
+→ sequenceDiagram 1: Data Initialization
+   - 進入 Prematch Comment Page
+   - GET /chat/match/comment/popular
+   - 顯示評論列表
+
+→ sequenceDiagram 2: Data Interaction - 發表評論
+   - 點擊輸入框
+   - 檢查登入狀態（alt）
+   - 檢查 nickname（alt）
+   - POST /chat/match/comment
+   - 更新評論列表
+
+→ sequenceDiagram 3: Data Interaction - 點讚
+   - 點擊 Like 按鈕
+   - POST /chat/match/comment/like
+   - 更新 Like 狀態
+
+→ sequenceDiagram 4: Structural Navigation - 跳轉 Profile
+   - 點擊使用者頭像
+   - 檢查權限
+   - 跳轉到 Profile Page
+```
+
+###### 4.3 階段 2：架構設計圖（細化為具體模組）
+
+在確定架構設計後，將業務流程圖細化為具體的 participants：
+
+**Participants**：
+- `User`（actor）
+- `View`（UI Layer）
+- `Feature`（Domain Layer）
+- `UseCase`（Domain Layer）
+- `Repository`（Data & Infrastructure Layer）
+- `Client`（Data & Infrastructure Layer）
+- `API`（Data & Infrastructure Layer）
+- `Server`（Backend）
+
+**目標**：
+- 確定具體的模組設計
+- 符合 Clean Architecture 分層
+- 準備生成 TDD
+
+**範例**：
+
+```mermaid
+sequenceDiagram
+    actor User
+    box rgb(207,232,255) UI Layer
+        participant View as PrematchCommentView
+    end
+    box rgb(255,250,205) Domain Layer
+        participant Feature as PrematchCommentFeature
+        participant UseCase as PublishCommentUseCase
+    end
+    box rgb(240,240,240) Data & Infrastructure Layer
+        participant Repository as PrematchCommentRepository
+        participant Client as PrematchCommentClient
+        participant API as POST /chat/match/comment
+    end
+    participant Server as Server
+
+    User->>View: 點擊輸入框
+    View->>Feature: publishCommentTapped
+    Feature->>UseCase: execute(content: String)
+    UseCase->>Repository: publishComment(content: String)
+    Repository->>Client: request(content: String)
+    Client->>API: POST /chat/match/comment
+    API->>Server: HTTP Request
+    Server-->>API: Response
+    API-->>Client: CommentDTO
+    Client-->>Repository: CommentDTO
+    Repository-->>UseCase: Comment Entity
+    UseCase-->>Feature: Comment Entity
+    Feature-->>View: State Updated
+    View-->>User: 顯示新評論
+```
+
+###### 4.4 兩階段工作流程總結
+
+**階段 1：業務流程圖（初期）**
+- 使用簡化 participants：`User/App/Server`
+- 目標：理解業務流程，識別需要哪些 sequenceDiagram
+- 適用時機：只有 PRD 和 API doc，尚未確定架構設計
+
+**階段 2：架構設計圖（細化）**
+- 使用具體 participants：`View/Feature/UseCase/Repository/Client/API`
+- 目標：確定具體的模組設計
+- 適用時機：已確定架構設計，準備生成 TDD
+
+**檢查清單**：
+
+- [ ] 每個「使用者操作 + API 呼叫」組合是否都有對應的圖？
+- [ ] 是否按照三種類型（Initialization、Interaction、Navigation）分類？
+- [ ] 相似的操作是否已合併（使用 `alt`）？
+- [ ] 純 UI 行為是否已省略？
+- [ ] 每個圖是否標註了 `@flow: Full` 或 `@flow: Sub`？
+
+##### 5. 設計 Mermaid Sequence Diagram
 
 1. 根據 PRD、API Spec、UI/UX Spec 設計流程
 2. 識別參與者（Participants）
+   - 初期階段：使用 `User/App/Server`
+   - 細化階段：使用 `View/Feature/UseCase/Repository/Client/API`
 3. 設計互動流程
 4. 標註 Flow 類型（`@feature`、`@flow`）
 
