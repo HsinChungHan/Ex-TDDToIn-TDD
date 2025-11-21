@@ -58,7 +58,8 @@ plugins:
 
 # 導航結構
 nav:
-  - TDD 自動化生成完整工作流程: TDD_GENERATION_WORKFLOW.md
+  - TDD 生成工作流程: 01_TDD_生成工作流程.md
+  - 各角色文件規範: 02_各角色文件規範.md
   - Overview: 
     - 00_Overview/01_overview.md
   - Integrated Service-Level Sequence Diagram:
